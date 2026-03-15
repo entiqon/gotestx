@@ -35,7 +35,6 @@ release-notes:
 	git cliff \
 		--config cliff.toml \
 		--tag $(VERSION) \
-		--template .cliff/release.tpl \
 		--output $(RELEASE_DIR)/release-notes-$(VERSION).md
 
 prepare-release:
