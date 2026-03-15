@@ -2,9 +2,18 @@
 
 > Go Test eXtended tool with coverage support
 
-[![Go Version](https://img.shields.io/badge/Go-1.21%2B-blue)](https://go.dev) <a href="https://github.com/entiqon/gotestx/releases"><img src="https://img.shields.io/github/v/release/entiqon/gotestx" alt="Latest Release" /></a>
+[![Official Repository](https://img.shields.io/badge/Repository-Entiqon%20Labs-blue?logo=github)](https://github.com/entiqon/gotestx)
+[![Go Version](https://img.shields.io/badge/Go-1.21%2B-blue)](https://go.dev)
+[![Release](https://img.shields.io/github/v/release/entiqon/gotestx)](https://github.com/entiqon/gotestx/releases)
 [![Build Status](https://github.com/entiqon/gotestx/actions/workflows/ci.yml/badge.svg)](https://github.com/entiqon/gotestx/actions)
 [![Codecov](https://codecov.io/gh/entiqon/gotestx/branch/main/graph/badge.svg)](https://codecov.io/gh/entiqon/gotestx)
+[![Go Report Card](https://goreportcard.com/badge/github.com/entiqon/gotestx)](https://goreportcard.com/report/github.com/entiqon/gotestx)
+[![Go Reference](https://pkg.go.dev/badge/github.com/entiqon/gotestx.svg)](https://pkg.go.dev/github.com/entiqon/gotestx)
+[![License](https://img.shields.io/github/license/entiqon/gotestx)](LICENSE)
+
+**Official repository (canonical source):** https://github.com/entiqon/gotestx
+
+## Get started
 
 GoTestX extends the standard [`go test`](https://pkg.go.dev/cmd/go#hdr-Test_packages) command with a simpler, more
 versatile interface.  
