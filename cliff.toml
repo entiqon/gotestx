@@ -1,4 +1,3 @@
-``` toml
 [changelog]
 header = """
 # Changelog
@@ -36,4 +35,3 @@ group = "Documentation"
 [[git.commit_parsers]]
 message = "^test"
 group = "Tests"
-```

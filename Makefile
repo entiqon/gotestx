@@ -3,13 +3,22 @@ DIST := dist
 RELEASE_DIR := releases
 MAIN_BRANCH := main
 
+PKG := github.com/entiqon/gotestx/internal
+
 VERSION ?=
 CURRENT_BRANCH := $(shell git branch --show-current)
+COMMIT := $(shell git rev-parse --short HEAD)
+DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+LDFLAGS := -s -w \
+	-X $(PKG).Version=$(VERSION) \
+	-X $(PKG).GitCommit=$(COMMIT) \
+	-X $(PKG).BuildDate=$(DATE)
 
 .PHONY: build test clean dist checksums changelog release-notes prepare-release publish release
 
 build:
-	go build -o $(BINARY) .
+	go build -ldflags "$(LDFLAGS)" -o $(BINARY) .
 
 test:
 	go test ./...
@@ -21,10 +30,10 @@ clean:
 dist: clean
 	mkdir -p $(DIST)
 
-	GOOS=linux GOARCH=amd64 go build -o $(DIST)/$(BINARY)-linux-amd64
-	GOOS=darwin GOARCH=amd64 go build -o $(DIST)/$(BINARY)-darwin-amd64
-	GOOS=darwin GOARCH=arm64 go build -o $(DIST)/$(BINARY)-darwin-arm64
-	GOOS=windows GOARCH=amd64 go build -o $(DIST)/$(BINARY)-windows-amd64.exe
+	GOOS=linux GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o $(DIST)/$(BINARY)-linux-amd64
+	GOOS=darwin GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o $(DIST)/$(BINARY)-darwin-amd64
+	GOOS=darwin GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o $(DIST)/$(BINARY)-darwin-arm64
+	GOOS=windows GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o $(DIST)/$(BINARY)-windows-amd64.exe
 
 checksums: dist
 	cd $(DIST) && sha256sum * > checksums.txt
