@@ -60,7 +60,7 @@ prepare-release:
 	$(MAKE) changelog
 	$(MAKE) release-notes VERSION=$(VERSION)
 
-	git add CHANGELOG.md $(RELEASE_DIR)/release-notes-$(VERSION).md
+	git add CHANGELOG.md
 	git commit -S -m "docs(release): prepare $(VERSION)"
 
 	@echo ""
