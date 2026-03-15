@@ -1,8 +1,10 @@
 BINARY := gotestx
 DIST := dist
 RELEASE_DIR := releases
+MAIN_BRANCH := main
 
 VERSION ?=
+CURRENT_BRANCH := $(shell git branch --show-current)
 
 .PHONY: build test clean dist checksums changelog release-notes prepare-release publish release
 
@@ -38,9 +40,15 @@ release-notes:
 		--output $(RELEASE_DIR)/release-notes-$(VERSION).md
 
 prepare-release:
+	@if [ "$(CURRENT_BRANCH)" != "$(MAIN_BRANCH)" ]; then \
+		echo "ERROR: releases must be created from $(MAIN_BRANCH)"; \
+		echo "Current branch: $(CURRENT_BRANCH)"; \
+		exit 1; \
+	fi
+
 	@if [ -z "$(VERSION)" ]; then \
 		echo "ERROR: VERSION is required"; \
-		echo "Usage: make prepare-release VERSION=vX.Y.Z"; \
+		echo "Usage: make release VERSION=vX.Y.Z"; \
 		exit 1; \
 	fi
 
@@ -62,14 +70,6 @@ prepare-release:
 
 	git add CHANGELOG.md
 	git commit -S -m "docs(release): prepare $(VERSION)"
-
-	@echo ""
-	@echo "Release prepared."
-	@echo "Next steps:"
-	@echo "  git push"
-	@echo "  git tag -s $(VERSION) -m \"GoTestX $(VERSION)\""
-	@echo "  git push origin $(VERSION)"
-	@echo "  make publish VERSION=$(VERSION)"
 
 publish: dist checksums
 	@if [ -z "$(VERSION)" ]; then \
