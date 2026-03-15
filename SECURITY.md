@@ -24,11 +24,8 @@ Instead, report the issue privately to the project maintainer.
 
 **Contact**
 
-Author / Maintainer:
-Isidro A. López G.
-
-Project:
-https://github.com/entiqon/gotestx
+* Author / Maintainer: Isidro A. López G.
+* Project: https://github.com/entiqon/gotestx
 
 Please include the following information when reporting a vulnerability:
 
