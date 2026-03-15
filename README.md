@@ -13,6 +13,12 @@
 
 **Official repository (canonical source):** https://github.com/entiqon/gotestx
 
+> [!CAUTION]
+> **OFFICIAL INSTALLATION ONLY**
+> Please ensure you are using the official **Entiqon/GoTestX** repository.
+> We have detected unauthorized forks providing `.zip` downloads through third-party folders (e.g., `cyclophoria`).
+> **Never download binaries or zip files from forks.** Use only the [Official Releases](https://github.com/Entiqon/GoTestX/releases) page.
+
 ## Get started
 
 GoTestX extends the standard [`go test`](https://pkg.go.dev/cmd/go#hdr-Test_packages) command with a simpler, more
