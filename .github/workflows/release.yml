@@ -1,0 +1,48 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: latest
+
+      - name: Install git-cliff
+        uses: taiki-e/install-action@git-cliff
+
+      - name: Generate release notes
+        run: |
+          git cliff \
+            --tag ${{ github.ref_name }} \
+            --output release-notes.md
+
+      - name: Build binaries
+        run: |
+          mkdir dist
+
+          GOOS=linux GOARCH=amd64 go build -o dist/gotestx-linux-amd64
+          GOOS=darwin GOARCH=amd64 go build -o dist/gotestx-darwin-amd64
+          GOOS=darwin GOARCH=arm64 go build -o dist/gotestx-darwin-arm64
+          GOOS=windows GOARCH=amd64 go build -o dist/gotestx-windows-amd64.exe
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release-notes.md
+          files: dist/*
