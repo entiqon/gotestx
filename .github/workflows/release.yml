@@ -21,7 +21,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: "1.21"
+          go-version: latest
 
       - name: Install git-cliff
         uses: taiki-e/install-action@git-cliff
@@ -50,9 +50,10 @@ jobs:
           git cliff \
             --config cliff.toml \
             --tag ${{ github.ref_name }} \
+            --template .cliff/release.tpl \
             --output release-notes.md
 
-      # Build Go binaries
+      # Build binaries
       - name: Build binaries
         run: |
           mkdir dist
@@ -62,7 +63,7 @@ jobs:
           GOOS=darwin GOARCH=arm64 go build -o dist/gotestx-darwin-arm64
           GOOS=windows GOARCH=amd64 go build -o dist/gotestx-windows-amd64.exe
 
-      # Create GitHub Release
+      # Create GitHub release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
