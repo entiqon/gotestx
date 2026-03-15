@@ -1,47 +1,88 @@
-# GoTestX Makefile
-
 BINARY := gotestx
-VERSION := $(shell git describe --tags --abbrev=0)
-COMMIT := $(shell git rev-parse --short HEAD)
+DIST := dist
+RELEASE_DIR := releases
 
-GO := go
-BUILD_DIR := bin
+VERSION ?=
 
-.PHONY: build test install clean release help
-
-help:
-	@echo "GoTestX build commands"
-	@echo ""
-	@echo "make build      Build local binary"
-	@echo "make test       Run tests"
-	@echo "make install    Install tool locally"
-	@echo "make release    Build binaries for multiple platforms"
-	@echo "make clean      Remove build artifacts"
+.PHONY: build test clean dist checksums changelog release-notes prepare-release publish release
 
 build:
-	@echo "Building $(BINARY)..."
-	$(GO) build -o $(BUILD_DIR)/$(BINARY) .
+	go build -o $(BINARY) .
 
 test:
-	@echo "Running tests..."
-	$(GO) test ./internal/... -v
-
-install:
-	@echo "Installing $(BINARY)..."
-	$(GO) install .
+	go test ./...
 
 clean:
-	@echo "Cleaning build artifacts..."
-	rm -rf $(BUILD_DIR)
+	rm -rf $(DIST)
+	rm -f $(BINARY)
 
-release: clean
-	@echo "Building release binaries..."
-	mkdir -p $(BUILD_DIR)
+dist: clean
+	mkdir -p $(DIST)
 
-	GOOS=darwin GOARCH=arm64 $(GO) build -o $(BUILD_DIR)/$(BINARY)-darwin-arm64 .
-	GOOS=darwin GOARCH=amd64 $(GO) build -o $(BUILD_DIR)/$(BINARY)-darwin-amd64 .
-	GOOS=linux GOARCH=amd64 $(GO) build -o $(BUILD_DIR)/$(BINARY)-linux-amd64 .
-	GOOS=windows GOARCH=amd64 $(GO) build -o $(BUILD_DIR)/$(BINARY)-windows-amd64.exe .
+	GOOS=linux GOARCH=amd64 go build -o $(DIST)/$(BINARY)-linux-amd64
+	GOOS=darwin GOARCH=amd64 go build -o $(DIST)/$(BINARY)-darwin-amd64
+	GOOS=darwin GOARCH=arm64 go build -o $(DIST)/$(BINARY)-darwin-arm64
+	GOOS=windows GOARCH=amd64 go build -o $(DIST)/$(BINARY)-windows-amd64.exe
+
+checksums: dist
+	cd $(DIST) && sha256sum * > checksums.txt
+
+changelog:
+	git cliff --config cliff.toml --output CHANGELOG.md
+
+release-notes:
+	mkdir -p $(RELEASE_DIR)
+	git cliff \
+		--config cliff.toml \
+		--tag $(VERSION) \
+		--template .cliff/release.tpl \
+		--output $(RELEASE_DIR)/release-notes-$(VERSION).md
+
+prepare-release:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "ERROR: VERSION is required"; \
+		echo "Usage: make prepare-release VERSION=vX.Y.Z"; \
+		exit 1; \
+	fi
+
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		echo "ERROR: git working tree is dirty"; \
+		echo "Please commit or stash changes before preparing a release"; \
+		exit 1; \
+	fi
+
+	@if git rev-parse "$(VERSION)" >/dev/null 2>&1; then \
+		echo "ERROR: tag $(VERSION) already exists"; \
+		exit 1; \
+	fi
+
+	@echo "Preparing release $(VERSION)"
+
+	$(MAKE) changelog
+	$(MAKE) release-notes VERSION=$(VERSION)
+
+	git add CHANGELOG.md $(RELEASE_DIR)/release-notes-$(VERSION).md
+	git commit -S -m "docs(release): prepare $(VERSION)"
 
 	@echo ""
-	@echo "Release binaries created in ./bin"
+	@echo "Release prepared."
+	@echo "Next steps:"
+	@echo "  git push"
+	@echo "  git tag -s $(VERSION) -m \"GoTestX $(VERSION)\""
+	@echo "  git push origin $(VERSION)"
+	@echo "  make publish VERSION=$(VERSION)"
+
+publish: dist checksums
+	@if [ -z "$(VERSION)" ]; then \
+		echo "ERROR: VERSION is required"; \
+		exit 1; \
+	fi
+
+	@echo "Publishing release $(VERSION)"
+
+	gh release create $(VERSION) \
+		--title "GoTestX $(VERSION)" \
+		--notes-file $(RELEASE_DIR)/release-notes-$(VERSION).md \
+		$(DIST)/*
+
+release: prepare-release publish
