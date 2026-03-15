@@ -1,3 +1,16 @@
+/*
+Copyright © 2025-2026 Entiqon
+
+Author: Isidro A. López G.
+
+This file is part of the GoTestX project.
+
+Repository:
+https://github.com/entiqon/gotestx
+
+Licensed under the MIT License.
+See the LICENSE file in the project root for license information.
+*/
 package main
 
 import (
