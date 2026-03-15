@@ -40,23 +40,50 @@ It adds optional coverage reporting, quiet mode, and clean output filtering — 
 
 ## 🚀 Installation
 
-Install directly via GitHub:
+Recommended:
 
-```bash
+``` bash
 go install github.com/entiqon/gotestx@latest
 ```
 
 Check installation:
 
-```bash
+``` bash
 gotestx -v
 ```
 
 ---
 
+## 📦 Releases
+
+Prebuilt binaries are available for users who prefer not to build the
+tool locally.
+
+Latest version:
+
+https://github.com/entiqon/gotestx/releases
+
+Each release includes binaries for:
+
+- Linux (amd64)
+- macOS Intel (amd64)
+- macOS Apple Silicon (arm64)
+- Windows (amd64)
+
+Example installation from binary:
+
+``` bash
+chmod +x gotestx
+sudo mv gotestx /usr/local/bin/
+```
+
+However, installing via Go remains the recommended approach.
+
+------------------------------------------------------------------------
+
 ## 📦 Usage
 
-```bash
+``` bash
 gotestx [options] [packages]
 ```
 

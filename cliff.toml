@@ -1,17 +1,15 @@
+``` toml
 [changelog]
-template = ".cliff/release.tpl"
 header = """
 # Changelog
 All notable changes to this project will be documented in this file.
 """
 
 body = """
-## {{ version }}
-
 {% for group, commits in commits | group_by(attribute="group") %}
 ### {{ group }}
 {% for commit in commits %}
-- {% if commit.scope %}**{{ commit.scope }}**:{% endif %} {{ commit.message | upper_first }}
+- {% if commit.scope %}**{{ commit.scope }}**: {% endif %}{{ commit.message | upper_first }}
 {% endfor %}
 {% endfor %}
 """
@@ -38,3 +36,4 @@ group = "Documentation"
 [[git.commit_parsers]]
 message = "^test"
 group = "Tests"
+```
