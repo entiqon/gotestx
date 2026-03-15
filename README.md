@@ -6,8 +6,10 @@
 [![Build Status](https://github.com/entiqon/gotestx/actions/workflows/ci.yml/badge.svg)](https://github.com/entiqon/gotestx/actions)
 [![Codecov](https://codecov.io/gh/entiqon/gotestx/branch/main/graph/badge.svg)](https://codecov.io/gh/entiqon/gotestx)
 
-GoTestX extends the standard [`go test`](https://pkg.go.dev/cmd/go#hdr-Test_packages) command with a simpler, more versatile interface.  
-It adds optional coverage reporting, quiet mode, and clean output filtering — while remaining fully compatible with `go test`.
+GoTestX extends the standard [`go test`](https://pkg.go.dev/cmd/go#hdr-Test_packages) command with a simpler, more
+versatile interface.  
+It adds optional coverage reporting, quiet mode, and clean output filtering — while remaining fully compatible with
+`go test`.
 
 ---
 
@@ -16,14 +18,14 @@ It adds optional coverage reporting, quiet mode, and clean output filtering — 
 * **Coverage mode** (`-c`): generates `coverage.out` with `-covermode=atomic`.
 * **Open coverage** (`-o`): opens the HTML coverage report in a browser (macOS only).
 * **Quiet mode** (`-q`): suppresses verbose chatter, but always reports:
-  * ✅ success if all tests passed
-  * coverage % if `-c` is enabled
-  * ❌ failure (with hint to rerun without `-q`)
+    * ✅ success if all tests passed
+    * coverage % if `-c` is enabled
+    * ❌ failure (with hint to rerun without `-q`)
 * **Clean view** (`-V`): removes `? … [no test files]` lines for cleaner output.
 * **Flag combinations**: short flags can be combined (e.g. `-cq`, `-coq`, `-cVq`).
 * **Smart package detection**:
-  * Expands `./pkg` → `./pkg/...` if root has no Go files but subpackages do.
-  * Reports errors if a path doesn’t exist or has no Go files.
+    * Expands `./pkg` → `./pkg/...` if root has no Go files but subpackages do.
+    * Reports errors if a path doesn’t exist or has no Go files.
 
 ---
 
@@ -162,7 +164,18 @@ go test ./internal/... -v
 
 ---
 
+## 🏛️ Ownership & Attribution
+
+**GoTestX** is an original project developed and maintained by **Entiqon Labs**.
+
+* **Lead Architect:** [Isidro A. López G.](https://github.com/ialopezg)
+* **Official Repository:** [github.com/entiqon/gotestx](https://github.com/entiqon/gotestx)
+* **Initial Release:** September 2025
+
+---
+
 ## 📄 License
 
 Part of the [Entiqon Project](https://github.com/entiqon).  
-Licensed under the MIT License.
+Licensed under the **MIT License**. As per the license terms, the original copyright notice and this permission notice
+must be included in all copies or substantial portions of the software.
