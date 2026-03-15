@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.2] - 2026-03-14
+
+### Added
+- Makefile with build, test, install and release tasks.
+- Automated GitHub release workflow with git-cliff.
+- Cross-platform binary builds attached to releases.
+
+### Changed
+- Repository governance and contributor documentation.
+
+---
+
 ## [1.1.1] - 2026-03-15
 
 ### Added

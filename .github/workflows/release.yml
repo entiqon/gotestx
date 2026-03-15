@@ -21,17 +21,38 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: latest
+          go-version: "1.21"
 
       - name: Install git-cliff
         uses: taiki-e/install-action@git-cliff
 
+      # Generate full CHANGELOG.md
+      - name: Generate changelog
+        run: |
+          git cliff --config cliff.toml --output CHANGELOG.md
+
+      # Commit updated changelog
+      - name: Commit changelog
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add CHANGELOG.md
+          git commit -m "docs(changelog): update for ${{ github.ref_name }}" || echo "No changes"
+
+      # Push updated changelog to main
+      - name: Push changelog
+        run: |
+          git push origin HEAD:main
+
+      # Generate release notes for the tag
       - name: Generate release notes
         run: |
           git cliff \
+            --config cliff.toml \
             --tag ${{ github.ref_name }} \
             --output release-notes.md
 
+      # Build Go binaries
       - name: Build binaries
         run: |
           mkdir dist
@@ -41,6 +62,7 @@ jobs:
           GOOS=darwin GOARCH=arm64 go build -o dist/gotestx-darwin-arm64
           GOOS=windows GOARCH=amd64 go build -o dist/gotestx-windows-amd64.exe
 
+      # Create GitHub Release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:

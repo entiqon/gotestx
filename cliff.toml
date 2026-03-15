@@ -1,0 +1,37 @@
+[changelog]
+header = """
+# Changelog
+All notable changes to this project will be documented in this file.
+"""
+
+body = """
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group }}
+{% for commit in commits %}
+- {{ commit.message | upper_first }}
+{% endfor %}
+{% endfor %}
+"""
+
+[git]
+conventional_commits = true
+
+[[git.commit_parsers]]
+message = "^feat"
+group = "Added"
+
+[[git.commit_parsers]]
+message = "^fix"
+group = "Fixed"
+
+[[git.commit_parsers]]
+message = "^refactor"
+group = "Changed"
+
+[[git.commit_parsers]]
+message = "^docs"
+group = "Documentation"
+
+[[git.commit_parsers]]
+message = "^test"
+group = "Tests"
