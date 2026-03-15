@@ -31,7 +31,6 @@ ehthumbs.db
 Desktop.ini
 
 # Binaries for programs and plugins
-bin/
 *.exe
 *.exe~
 *.dll
@@ -56,6 +55,14 @@ docs/_site/
 docs/public/
 public/
 
-# env file
+# local configurations
 .env
+
+# Release notes generated locally
 releases/*
+
+# Build artifacts
+dist/
+
+# Local binaries
+bin/

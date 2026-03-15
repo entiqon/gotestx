@@ -85,4 +85,18 @@ publish: dist checksums
 		--notes-file $(RELEASE_DIR)/release-notes-$(VERSION).md \
 		$(DIST)/*
 
-release: prepare-release publish
+release: prepare-release dist checksums
+	@echo "Pushing release commit"
+	git push
+
+	@echo "Creating signed tag $(VERSION)"
+	git tag -s $(VERSION) -m "GoTestX $(VERSION)"
+
+	@echo "Pushing tag"
+	git push origin $(VERSION)
+
+	@echo "Publishing GitHub release"
+	gh release create $(VERSION) \
+		--title "GoTestX $(VERSION)" \
+		--notes-file $(RELEASE_DIR)/release-notes-$(VERSION).md \
+		$(DIST)/*
