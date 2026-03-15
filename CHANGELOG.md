@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+---
+
+## [1.1.1] - 2026-03-15
+
+### Added
+- Governance and community documentation:
+  - `CODEOWNERS`
+  - `CONTRIBUTING.md`
+  - `CONTRIBUTORS.md`
+  - `SECURITY.md`
+  - `SUPPORT.md`
+  - `CODE_OF_CONDUCT.md`
+  - `NOTICE`
+  - `ROADMAP.md`
+  - `RELEASE.md`
+
+### Changed
+- Established **canonical project attribution** and official repository under **Entiqon Labs**.
+- Added standard copyright headers to core source files.
+
+### Security
+- Introduced repository protection rules:
+  - required pull requests
+  - required approvals
+  - required signed commits
+  - linear history enforcement
+  - force-push prevention
+
+---
+
 ## [1.1.0] - 2025-09-21
 
 ### Added
