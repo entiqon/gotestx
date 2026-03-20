@@ -9,9 +9,7 @@ import (
 )
 
 func TestResolveOptions(t *testing.T) {
-
 	t.Run("Packages", func(t *testing.T) {
-
 		t.Run("Default", func(t *testing.T) {
 			opts, code := gotestx.ResolveOptions([]string{}, io.Discard, io.Discard)
 
@@ -47,11 +45,9 @@ func TestResolveOptions(t *testing.T) {
 				t.Fatalf("expected 2 packages")
 			}
 		})
-
 	})
 
 	t.Run("Flags", func(t *testing.T) {
-
 		t.Run("Combined", func(t *testing.T) {
 			opts, code := gotestx.ResolveOptions(
 				[]string{"-coqV"},
@@ -76,25 +72,46 @@ func TestResolveOptions(t *testing.T) {
 		})
 
 		t.Run("Short", func(t *testing.T) {
-
 			t.Run("CleanView", func(t *testing.T) {
-				opts, code := gotestx.ResolveOptions(
-					[]string{"-V"},
-					io.Discard,
-					io.Discard,
-				)
+				t.Run("Short", func(t *testing.T) {
+					opts, code := gotestx.ResolveOptions(
+						[]string{"-V"},
+						io.Discard,
+						io.Discard,
+					)
 
-				if opts == nil {
-					t.Fatalf("expected options not nil")
-				}
+					if opts == nil {
+						t.Fatalf("expected options not nil")
+					}
 
-				if code != gotestx.ExitContinue {
-					t.Fatalf("expected ExitContinue, got %d", code)
-				}
+					if code != gotestx.ExitContinue {
+						t.Fatalf("expected ExitContinue, got %d", code)
+					}
 
-				if !opts.CleanView {
-					t.Fatalf("expected CleanView = true")
-				}
+					if !opts.CleanView {
+						t.Fatalf("expected CleanView = true")
+					}
+				})
+
+				t.Run("Long", func(t *testing.T) {
+					opts, code := gotestx.ResolveOptions(
+						[]string{"--clean-view", "--quiet"},
+						io.Discard,
+						io.Discard,
+					)
+
+					if code != gotestx.ExitContinue {
+						t.Fatalf("unexpected exit code")
+					}
+
+					if opts == nil {
+						t.Fatalf("expected options not nil")
+					}
+
+					if !opts.CleanView || !opts.Quiet {
+						t.Fatalf("long flags not parsed")
+					}
+				})
 			})
 
 			t.Run("Coverage", func(t *testing.T) {
@@ -137,6 +154,139 @@ func TestResolveOptions(t *testing.T) {
 				if out.Len() == 0 {
 					t.Fatalf("expected help output")
 				}
+			})
+
+			t.Run("Ignore", func(t *testing.T) {
+				t.Run("Short", func(t *testing.T) {
+					opts, code := gotestx.ResolveOptions(
+						[]string{"-I", "./internal/mocks"},
+						io.Discard,
+						io.Discard,
+					)
+
+					if code != gotestx.ExitContinue {
+						t.Fatalf("expected ExitContinue, got %d", code)
+					}
+
+					if opts == nil {
+						t.Fatalf("expected options not nil")
+					}
+
+					if len(opts.Ignore) != 1 || opts.Ignore[0] != "./internal/mocks" {
+						t.Fatalf("ignore flag not parsed correctly: %#v", opts.Ignore)
+					}
+				})
+
+				t.Run("Long", func(t *testing.T) {
+					opts, code := gotestx.ResolveOptions(
+						[]string{"--ignore-pattern", "./internal/generated"},
+						io.Discard,
+						io.Discard,
+					)
+
+					if code != gotestx.ExitContinue {
+						t.Fatalf("unexpected exit code")
+					}
+
+					if opts == nil {
+						t.Fatalf("expected options not nil")
+					}
+
+					if len(opts.Ignore) != 1 || opts.Ignore[0] != "./internal/generated" {
+						t.Fatalf("long ignore flag not parsed")
+					}
+				})
+
+				t.Run("Multiple", func(t *testing.T) {
+					opts, code := gotestx.ResolveOptions(
+						[]string{
+							"-I", "./internal/mocks",
+							"-I", "./internal/generated",
+						},
+						io.Discard,
+						io.Discard,
+					)
+
+					if code != gotestx.ExitContinue {
+						t.Fatalf("unexpected exit code")
+					}
+
+					if opts == nil {
+						t.Fatalf("expected options not nil")
+					}
+
+					if len(opts.Ignore) != 2 {
+						t.Fatalf("expected 2 ignore patterns, got %d", len(opts.Ignore))
+					}
+				})
+
+				t.Run("Combined", func(t *testing.T) {
+					opts, code := gotestx.ResolveOptions(
+						[]string{"-cI", "./internal/mocks"},
+						io.Discard,
+						io.Discard,
+					)
+
+					if code != gotestx.ExitContinue {
+						t.Fatalf("unexpected exit code")
+					}
+
+					if opts == nil {
+						t.Fatalf("expected options not nil")
+					}
+
+					if !opts.WithCoverage {
+						t.Fatalf("expected coverage enabled")
+					}
+
+					if len(opts.Ignore) != 1 || opts.Ignore[0] != "./internal/mocks" {
+						t.Fatalf("combined ignore flag not parsed correctly")
+					}
+				})
+
+				t.Run("MissingPattern", func(t *testing.T) {
+					var errBuf bytes.Buffer
+
+					opts, code := gotestx.ResolveOptions(
+						[]string{"-I"},
+						io.Discard,
+						&errBuf,
+					)
+
+					if opts != nil {
+						t.Fatalf("expected nil options")
+					}
+
+					if code != gotestx.ExitUsage {
+						t.Fatalf("expected ExitUsage")
+					}
+
+					if errBuf.Len() == 0 {
+						t.Fatalf("expected error output")
+					}
+				})
+
+				t.Run("MissingPatternCombined", func(t *testing.T) {
+					var errBuf bytes.Buffer
+
+					opts, code := gotestx.ResolveOptions(
+						[]string{"-cI"}, // IMPORTANT: combined, no next arg
+						io.Discard,
+						&errBuf,
+					)
+
+					if opts != nil {
+						t.Fatalf("expected nil options")
+					}
+
+					if code != gotestx.ExitUsage {
+						t.Fatalf("expected ExitUsage")
+					}
+
+					if errBuf.Len() == 0 {
+						t.Fatalf("expected error output")
+					}
+				})
 			})
 
 			t.Run("Open", func(t *testing.T) {
@@ -196,27 +346,6 @@ func TestResolveOptions(t *testing.T) {
 					t.Fatalf("expected version output")
 				}
 			})
-
-		})
-
-		t.Run("Long", func(t *testing.T) {
-			opts, code := gotestx.ResolveOptions(
-				[]string{"--clean-view", "--quiet"},
-				io.Discard,
-				io.Discard,
-			)
-
-			if code != gotestx.ExitContinue {
-				t.Fatalf("unexpected exit code")
-			}
-
-			if opts == nil {
-				t.Fatalf("expected options not nil")
-			}
-
-			if !opts.CleanView || !opts.Quiet {
-				t.Fatalf("long flags not parsed")
-			}
 		})
 
 		t.Run("Invalid", func(t *testing.T) {
@@ -240,6 +369,5 @@ func TestResolveOptions(t *testing.T) {
 				t.Fatalf("expected error output")
 			}
 		})
-
 	})
 }

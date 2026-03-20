@@ -7,11 +7,8 @@ import (
 )
 
 func TestCommandRunner(t *testing.T) {
-
 	t.Run("Real", func(t *testing.T) {
-
 		t.Run("Run", func(t *testing.T) {
-
 			cmd := commandRunner("go", "version")
 
 			var out bytes.Buffer
@@ -30,7 +27,6 @@ func TestCommandRunner(t *testing.T) {
 		})
 
 		t.Run("Stdout", func(t *testing.T) {
-
 			cmd := commandRunner("go", "version")
 
 			var out bytes.Buffer
@@ -46,7 +42,6 @@ func TestCommandRunner(t *testing.T) {
 		})
 
 		t.Run("Failure", func(t *testing.T) {
-
 			var cmd Command
 
 			if runtime.GOOS == "windows" {
@@ -64,7 +59,6 @@ func TestCommandRunner(t *testing.T) {
 	})
 
 	t.Run("CreatesCommand", func(t *testing.T) {
-
 		cmd := commandRunner("go", "version")
 
 		if cmd == nil {

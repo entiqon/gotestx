@@ -23,6 +23,9 @@ type Options struct {
 
 	// Packages contains the packages that should be tested.
 	Packages []string
+
+	// Ignore contains ignore patterns used to filter packages.
+	Ignore []string
 }
 
 // ResolveOptions parses CLI arguments and resolves them into an
@@ -53,6 +56,7 @@ func ResolveOptions(args []string, stdout, stderr io.Writer) (*Options, int) {
 		arg := args[i]
 
 		switch {
+
 		case arg == "-h" || arg == "--help":
 			usage(stdout)
 			return nil, ExitOK
@@ -60,6 +64,15 @@ func ResolveOptions(args []string, stdout, stderr io.Writer) (*Options, int) {
 		case arg == "-v" || arg == "--version":
 			versionInfo(stdout)
 			return nil, ExitOK
+
+		case arg == "-I" || arg == "--ignore-pattern":
+			if i+1 >= len(args) {
+				_, _ = fmt.Fprintln(stderr, "Error: -I requires a pattern")
+				return nil, ExitUsage
+			}
+
+			i++
+			opts.Ignore = append(opts.Ignore, args[i])
 
 		case arg == "-c" || arg == "--with-coverage":
 			opts.WithCoverage = true
@@ -75,16 +88,31 @@ func ResolveOptions(args []string, stdout, stderr io.Writer) (*Options, int) {
 
 		case strings.HasPrefix(arg, "-"):
 			flags := arg[1:]
+
 			for _, f := range flags {
 				switch f {
+
 				case 'c':
 					opts.WithCoverage = true
+
 				case 'o':
 					opts.OpenCoverage = true
+
 				case 'q':
 					opts.Quiet = true
+
 				case 'V':
 					opts.CleanView = true
+
+				case 'I':
+					if i+1 >= len(args) {
+						_, _ = fmt.Fprintln(stderr, "Error: -I requires a pattern")
+						return nil, ExitUsage
+					}
+
+					i++
+					opts.Ignore = append(opts.Ignore, args[i])
+
 				default:
 					_, _ = fmt.Fprintf(stderr, "Error: Unknown short option: -%c\n", f)
 					usage(stderr)

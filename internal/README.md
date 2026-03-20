@@ -14,6 +14,7 @@ Responsibilities of this package include:
 - runtime helpers
 - coverage handling
 - output filtering
+- package exclusion via ignore rules
 - quiet execution summaries
 - exit semantics
 
@@ -35,11 +36,12 @@ behave after argument parsing.
 ## Flag Behavior
 
 | Flag | Long Form         | Description                                    |
-  |------|-------------------|------------------------------------------------|
+|------|-------------------|------------------------------------------------|
 | `-c` | `--with-coverage` | Enables coverage profile generation            |
 | `-o` | `--open-coverage` | Opens the coverage report after tests complete |
 | `-q` | `--quiet`         | Suppresses verbose test output                 |
 | `-V` | `--clean-view`    | Hides `[no test files]` lines from output      |
+| `-I` | `--ignore-pattern`| Excludes packages matching the given pattern   |
 | `-h` | `--help`          | Prints CLI usage information                   |
 | `-v` | `--version`       | Prints the GoTestX version                     |
 
@@ -53,13 +55,13 @@ behave after argument parsing.
 
 Example:
 
-``` bash
+```bash
 gotestx -o
 ```
 
 Equivalent to:
 
-``` bash
+```bash
 gotestx --with-coverage --open-coverage
 ```
 
@@ -73,7 +75,7 @@ If no packages are provided, GoTestX defaults to:
 
 Example:
 
-``` bash
+```bash
 gotestx
 ```
 
@@ -81,7 +83,7 @@ This runs tests across the entire module.
 
 You may also specify packages manually:
 
-``` bash
+```bash
 gotestx ./internal ./cmd
 ```
 
@@ -93,14 +95,72 @@ Short flags may be combined in a single argument.
 
 Example:
 
-``` bash
+```bash
 gotestx -cqV
 ```
 
 Equivalent to:
 
-``` bash
+```bash
 gotestx -c -q -V
+```
+
+---
+
+## Package Exclusion
+
+GoTestX allows excluding packages from test execution using:
+
+- CLI flag: `-I <pattern>`
+- Ignore file: `.gotestxignore`
+
+### Examples
+
+Exclude all packages containing a `mock` segment:
+
+```bash
+gotestx -I mock
+```
+
+Exclude a specific path:
+
+```bash
+gotestx -I outport/testkit
+```
+
+Multiple exclusions:
+
+```bash
+gotestx -I mock -I testkit
+```
+
+### Ignore File
+
+You can define persistent exclusions in a `.gotestxignore` file:
+
+```
+mock
+outport/testkit
+```
+
+### Pattern Behavior
+
+Patterns use a **tree-based syntax**:
+
+| Pattern            | Matches                                  |
+|--------------------|------------------------------------------|
+| `mock`             | any path segment named `mock`             |
+| `outport/testkit`  | exact subpath match                      |
+
+Matching is segment-based (not substring-based).
+
+### Execution Behavior
+
+- Filtering occurs **after package discovery**
+- If all packages are excluded, execution exits successfully:
+
+```
+No packages to test after applying ignore rules.
 ```
 
 ---
@@ -113,7 +173,7 @@ Quiet mode suppresses verbose output and prints a concise summary.
 
 Example:
 
-``` bash
+```bash
 gotestx -q
 ```
 
@@ -123,7 +183,7 @@ Possible output:
 
 With coverage enabled:
 
-``` bash
+```bash
 gotestx -cq
 ```
 
@@ -139,40 +199,35 @@ Clean view removes noisy Go test output lines such as:
 
 Example:
 
-``` bash
+```bash
 gotestx -V
 ```
-
-This makes test output easier to read when many packages contain no test
-files.
 
 ---
 
 ## Coverage Workflow
 
-Running GoTestX with coverage:
-
-``` bash
+```bash
 gotestx -c
 ```
 
-Generates a coverage profile:
+Generates:
 
     coverage.out
 
-You can view the coverage report using:
+View:
 
-``` bash
+```bash
 go tool cover -html=coverage.out
 ```
 
-To automatically open the report after running tests:
+Open automatically:
 
-``` bash
+```bash
 gotestx -co
 ```
 
-Note: opening the coverage report is currently supported on **macOS**.
+Note: only supported on **macOS**.
 
 ---
 
@@ -182,63 +237,30 @@ Note: opening the coverage report is currently supported on **macOS**.
 |-----------------|-------------------------------------------------|
 | `options.go`    | CLI argument parsing                            |
 | `run.go`        | Test execution orchestration                    |
-| `coverage.go`   | Coverage argument generation and report opening |
+| `coverage.go`   | Coverage helpers                               |
 | `quiet.go`      | Quiet-mode output processing                    |
-| `clean_view.go` | Filtering noisy test output                     |
-| `runtime.go`    | Runtime utilities (OS helpers)                  |
-| `command.go`    | Command execution abstraction                   |
-| `usage.go`      | CLI help output                                 |
-| `version.go`    | Version information                             |
-| `exclusions.go` | Output filtering rules                          |
-| `exitcodes.go`  | CLI exit code definitions                       |
-
----
-
-## Execution Flow
-
-The typical execution flow of GoTestX is:
-
-    main.go
-       ↓
-    ResolveOptions
-       ↓
-    Run
-       ↓
-    command execution
-       ↓
-    test output processing
-       ↓
-    coverage handling
-
-The `run.go` file acts as the **execution orchestrator**, delegating
-specific responsibilities to smaller components such as:
-
-- coverage helpers
-- quiet output processing
-- clean view filtering
-- runtime utilities
-
-This separation keeps the runtime easier to test and maintain.
+| `clean_view.go` | Output filtering                               |
+| `ignore.go`     | Package exclusion logic                         |
+| `ignorefile.go` | `.gotestxignore` loading                        |
+| `runtime.go`    | Runtime utilities                              |
+| `command.go`    | Command abstraction                            |
+| `usage.go`      | CLI help                                       |
+| `version.go`    | Version info                                   |
+| `exitcodes.go`  | Exit semantics                                 |
 
 ---
 
 ## Design Goals
 
-The internal runtime is designed to:
-
-- keep the CLI simple and predictable
-- maintain minimal dependencies
-- allow deterministic testing
-- keep test orchestration isolated from the CLI entrypoint
-- support future extensibility of test execution workflows
-- isolate CLI behavior from Go runtime implementation details
+- keep CLI simple and predictable
+- minimal dependencies
+- deterministic testing
+- isolated execution orchestration
+- flexible package exclusion
+- extensible architecture
 
 ---
 
 ## Package Visibility
 
-The package is placed under `internal/` intentionally to enforce Go
-module visibility rules and prevent external consumers from depending on
-unstable implementation details.
-
-Only the CLI entrypoint (`main.go`) should interact with this package.
+The package is under `internal/` to prevent external usage.

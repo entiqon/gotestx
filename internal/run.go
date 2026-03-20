@@ -5,9 +5,17 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
+
+var openCoverageCmd = buildCoverageOpenCommand
+var loadIgnore = loadIgnoreFile
+
+var listPackages = func(pkg string) ([]byte, error) {
+	return exec.Command("go", "list", pkg).Output()
+}
 
 // Run executes GoTestX using the provided CLI arguments.
 func Run(args []string, stdout, stderr io.Writer) int {
@@ -16,9 +24,14 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		return exit
 	}
 
-	packages := append([]string(nil), opts.Packages...)
+	if opts.OpenCoverage && getGOOS() != "darwin" {
+		_, _ = fmt.Fprintln(stderr, "Error: --open-coverage is only supported on macOS.")
+		return 1
+	}
 
-	for i, pkg := range packages {
+	inputPkgs := append([]string(nil), opts.Packages...)
+
+	for i, pkg := range inputPkgs {
 		if strings.Contains(pkg, "...") {
 			continue
 		}
@@ -26,9 +39,9 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		st, err := os.Stat(pkg)
 		if err != nil || !st.IsDir() {
 			if opts.Quiet {
-				fmt.Fprintln(stderr, "❌ Tests failed (use without -q to see details)")
+				_, _ = fmt.Fprintln(stderr, "❌ Tests failed (use without -q to see details)")
 			} else {
-				fmt.Fprintf(stderr, "Error: Package path '%s' does not exist.\n", pkg)
+				_, _ = fmt.Fprintf(stderr, "Error: Package path '%s' does not exist.\n", pkg)
 			}
 
 			return 1
@@ -41,26 +54,55 @@ func Run(args []string, stdout, stderr io.Writer) int {
 
 			if len(subMatches) > 0 {
 				if !opts.Quiet {
-					fmt.Fprintf(
+					_, _ = fmt.Fprintf(
 						stdout,
 						"Info: No Go files in '%s', using subpackages instead (%s/...)\n",
 						pkg,
 						pkg,
 					)
 				}
-
-				packages[i] = pkg + "/..."
+				inputPkgs[i] = pkg + "/..."
 			} else {
-
-				fmt.Fprintf(stderr, "Error: No Go files found in '%s'.\n", pkg)
+				_, _ = fmt.Fprintf(stderr, "Error: No Go files found in '%s'.\n", pkg)
 				return 1
 			}
 		}
 	}
 
-	if opts.OpenCoverage && getGOOS() != "darwin" {
-		fmt.Fprintln(stderr, "Error: --open-coverage is only supported on macOS.")
+	var expandedPkgs []string
+
+	for _, pkg := range inputPkgs {
+		out, err := listPackages(pkg)
+		if err != nil {
+			_, _ = fmt.Fprintf(stderr, "Error: failed to list packages for '%s': %v\n", pkg, err)
+			return 1
+		}
+
+		lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+		expandedPkgs = append(expandedPkgs, lines...)
+	}
+
+	filePatterns, err := loadIgnore()
+	if err != nil {
+		_, _ = fmt.Fprintf(stderr, "Error loading .gotestxignore: %v\n", err)
 		return 1
+	}
+
+	patterns := append(filePatterns, opts.Ignore...)
+
+	packages := expandedPkgs
+
+	if len(patterns) > 0 {
+		filtered := filterPackages(packages, patterns)
+
+		if len(filtered) == 0 {
+			if !opts.Quiet {
+				_, _ = fmt.Fprintln(stdout, "No packages to test after applying ignore rules.")
+			}
+			return ExitOK
+		}
+
+		packages = filtered
 	}
 
 	pkgList := strings.Join(packages, " ")
@@ -69,39 +111,33 @@ func Run(args []string, stdout, stderr io.Writer) int {
 
 	if opts.WithCoverage {
 		if !opts.Quiet {
-			fmt.Fprintf(stdout, "Running tests with coverage across: %s\n", pkgList)
+			_, _ = fmt.Fprintf(stdout, "Running tests with coverage across: %s\n", pkgList)
 		}
 
-		args := BuildCoverageArgs(packages)
-
+		args := buildCoverageArgs(packages)
 		cmd = commandRunner("go", args...)
 
 	} else {
 		if !opts.Quiet {
-			fmt.Fprintf(stdout, "Running tests normally across: %s\n", pkgList)
+			_, _ = fmt.Fprintf(stdout, "Running tests normally across: %s\n", pkgList)
 		}
 
 		args := append([]string{"test"}, packages...)
-
 		cmd = commandRunner("go", args...)
 	}
 
 	var buf bytes.Buffer
-
 	captureOutput := opts.CleanView || opts.Quiet
 
 	if captureOutput {
-
 		cmd.SetStdout(&buf)
 		cmd.SetStderr(&buf)
-
 	} else {
-
 		cmd.SetStdout(stdout)
 		cmd.SetStderr(stderr)
 	}
 
-	err := cmd.Run()
+	err = cmd.Run()
 
 	if opts.CleanView && !opts.Quiet {
 		FilterCleanViewOutput(&buf, stdout)
@@ -111,30 +147,27 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		return HandleQuietOutput(buf.String(), err, opts, stdout, stderr)
 	}
 
-	if err != nil && !opts.Quiet {
-		fmt.Fprintf(stderr, "Error: go test failed: %v\n", err)
+	if err != nil {
+		_, _ = fmt.Fprintf(stderr, "Error: go test failed: %v\n", err)
 		return 1
 	}
 
 	if opts.WithCoverage && !opts.Quiet {
-
-		fmt.Fprintln(stdout, "Coverage report saved as coverage.out")
-		fmt.Fprintln(stdout, "Run 'go tool cover -html=coverage.out' to view it")
+		_, _ = fmt.Fprintln(stdout, "Coverage report saved as coverage.out")
+		_, _ = fmt.Fprintln(stdout, "Run 'go tool cover -html=coverage.out' to view it")
 	}
 
 	if opts.WithCoverage && opts.OpenCoverage {
 		if !opts.Quiet {
-			fmt.Fprintln(stdout, "Opening coverage report in browser...")
+			_, _ = fmt.Fprintln(stdout, "Opening coverage report in browser...")
 		}
 
-		openCmd := BuildCoverageOpenCommand()
-
+		openCmd := openCoverageCmd()
 		openCmd.SetStdout(stdout)
 		openCmd.SetStderr(stderr)
 
 		if err := openCmd.Run(); err != nil {
-
-			fmt.Fprintf(stderr, "Error: failed to open coverage report: %v\n", err)
+			_, _ = fmt.Fprintf(stderr, "Error: failed to open coverage report: %v\n", err)
 			return 1
 		}
 	}

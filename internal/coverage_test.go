@@ -1,21 +1,17 @@
-package gotestx_test
+package gotestx
 
-import (
-	"testing"
-
-	gotestx "github.com/entiqon/gotestx/internal"
-)
+import "testing"
 
 func TestCoverage(t *testing.T) {
 	t.Run("BuildCoverage", func(t *testing.T) {
 		t.Run("Args", func(t *testing.T) {
 			pkgs := []string{"./...", "./internal"}
 
-			args := gotestx.BuildCoverageArgs(pkgs)
+			args := buildCoverageArgs(pkgs)
 
 			expectedPrefix := []string{
 				"test",
-				"-coverprofile=" + gotestx.CoverageFile,
+				"-coverprofile=" + coverageFile,
 				"-covermode=atomic",
 			}
 
@@ -31,12 +27,11 @@ func TestCoverage(t *testing.T) {
 		})
 
 		t.Run("OpenCommand", func(t *testing.T) {
-			cmd := gotestx.BuildCoverageOpenCommand()
+			cmd := buildCoverageOpenCommand()
 
 			if cmd == nil {
 				t.Fatalf("expected command instance")
 			}
-
 		})
 	})
 

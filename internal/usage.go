@@ -11,20 +11,34 @@ func usage(w io.Writer) {
 %s
 Author: %s
 
-Usage: %s [options] [packages]
+Usage:
+  %s [flags] [packages]
 
-Options:
-  -c, --with-coverage   Run tests with coverage report generation (coverage.out)
-  -o, --open-coverage   Open coverage report in browser (macOS only, implies -c)
-  -q, --quiet           Suppress verbose test chatter (only summary shown)
-  -V, --clean-view      Suppress 'no test files' lines for cleaner output
-  -h, --help            Show this help
-  -v, --version         Show version info
+Flags:
+  -c, --with-coverage     Enable coverage profile generation (coverage.out)
+  -o, --open-coverage     Open coverage report (macOS only, implies -c)
+  -q, --quiet             Suppress verbose output (summary only)
+  -V, --clean-view        Hide '[no test files]' lines
+  -I, --ignore-pattern    Exclude packages matching the given pattern
+  -h, --help              Show this help message
+  -v, --version           Show version information
+
+Examples:
+  %s
+  %s -c
+  %s -co
+  %s -I mock ./...
+  %s -q
 `,
 		ToolName,
 		Version,
 		Description,
 		Author,
+		ToolName,
+		ToolName,
+		ToolName,
+		ToolName,
+		ToolName,
 		ToolName,
 	)
 }
