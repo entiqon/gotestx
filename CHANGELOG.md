@@ -1,9 +1,19 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+### Added
+
+- **exclusion**: Add ignore option and filtering logic
+
+
 ### Changed
 
 - **core**: Extract coverage, quiet, and clean view helpers and refine CLI runtime infrastructure
+
+
+### Documentation
+
+- **release**: Prepare v1.1.3
 
 
 ### build
