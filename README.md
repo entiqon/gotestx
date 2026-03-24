@@ -1,6 +1,6 @@
 # GoTestX
 
-> A modern, developer-friendly test runner for Go with coverage, filtering, and clean output.
+> A developer-friendly test runner for Go with coverage, filtering, and clean output.
 
 [![Official Repository](https://img.shields.io/badge/Repository-Entiqon%20Labs-blue?logo=github)](https://github.com/entiqon/gotestx)
 [![Go Version](https://img.shields.io/badge/Go-1.21%2B-blue)](https://go.dev)
@@ -9,9 +9,7 @@
 [![Codecov](https://codecov.io/gh/entiqon/gotestx/branch/main/graph/badge.svg)](https://codecov.io/gh/entiqon/gotestx)
 [![Go Report Card](https://goreportcard.com/badge/github.com/entiqon/gotestx)](https://goreportcard.com/report/github.com/entiqon/gotestx)
 [![Go Reference](https://pkg.go.dev/badge/github.com/entiqon/gotestx.svg)](https://pkg.go.dev/github.com/entiqon/gotestx)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Security Verified](https://img.shields.io/badge/Security-Verified-success?logoColor=white)](https://github.com/Entiqon/gotestx/security/advisories)
-[![GPG Signed](https://img.shields.io/badge/GPG-Signed-blue?logo=gnupg&logoColor=white)](https://github.com/Entiqon/gotestx/commits/main)
+[![License](https://img.shields.io/github/license/entiqon/gotestx)](LICENSE)
 
 **Official repository (canonical source):** https://github.com/entiqon/gotestx
 
@@ -22,145 +20,162 @@
 
 ---
 
-## Get started
-
-GoTestX is a developer-focused test runner for Go that simplifies and enhances
-the standard `go test` workflow.
-
-It provides a consistent CLI with built-in support for coverage, package exclusion,
-quiet execution, and clean output — without requiring additional scripting.
-
----
-
-## ✨ Features
-
-* **Coverage mode** (`-c`): generates `coverage.out` using `-covermode=atomic`.
-* **Open coverage** (`-o`): opens the HTML coverage report (macOS only).
-* **Package exclusion** (`-I`): exclude packages using patterns or `.gotestxignore`.
-* **Quiet mode** (`-q`): minimal output with clear success/failure signals.
-* **Clean view** (`-V`): removes noisy `[no test files]` lines.
-* **Composable flags**: combine short flags (e.g. `-cq`, `-coq`, `-cVq`).
-* **Smart package resolution**:
-  * Expands `./pkg` → `./pkg/...` when appropriate.
-  * Validates paths and reports clear errors.
-
----
-
-## 🚀 Installation
-
-```bash
-go install github.com/entiqon/gotestx@latest
-```
-
-Verify:
-
-```bash
-gotestx -v
-```
-
----
-
-## 📦 Usage
+## Usage
 
 ```bash
 gotestx [flags] [packages]
 ```
 
-### Flags
+If no packages are provided, GoTestX defaults to:
+
+    ./...
+
+---
+
+## Flags
+
+| Flag                     | Description                                         |
+|--------------------------|-----------------------------------------------------|
+| `-c`, `--with-coverage`  | Enable coverage profile generation (`coverage.out`) |
+| `-o`, `--open-coverage`  | Open coverage report (macOS only, implies `-c`)     |
+| `-q`, `--quiet`          | Suppress verbose output (summary only)              |
+| `-V`, `--clean-view`     | Hide `[no test files]` lines                        |
+| `-I`, `--ignore-pattern` | Exclude packages using tree-based patterns          |
+| `-h`, `--help`           | Show help                                           |
+| `-v`, `--version`        | Show version                                        |
+
+---
+
+## Execution Behavior
+
+### Package Resolution
+
+- Packages are resolved using `go list`
+- If no packages are provided → `./...` is used
+- Invalid paths fail fast
+
+---
+
+### Package Filtering
+
+Packages can be excluded using:
+
+- CLI flags: `-I <pattern>`
+- `.gotestxignore` file
+
+#### Pattern Rules
+
+Patterns follow **tree-based matching**:
+
+| Pattern           | Meaning                          |
+|-------------------|----------------------------------|
+| `mock`            | matches any segment named `mock` |
+| `outport/testkit` | matches exact subpath            |
+
+- Matching is **segment-based**
+- Not substring-based
+- Not glob-based
+
+---
+
+### Execution Flow
 
 ```
--c, --with-coverage     Enable coverage profile generation (coverage.out)
--o, --open-coverage     Open coverage report (macOS only, implies -c)
--q, --quiet             Suppress verbose output (summary only)
--V, --clean-view        Hide '[no test files]' lines
--I, --ignore-pattern    Exclude packages matching the given pattern
--h, --help              Show help
--v, --version           Show version info
+go list ./...
+      ↓
+load .gotestxignore
+      ↓
+merge CLI patterns
+      ↓
+filter packages
+      ↓
+go test
 ```
 
 ---
 
-## 🚫 Package Exclusion
+### Filtering Behavior
 
-Exclude packages using CLI flags or `.gotestxignore`.
-
-### Examples
-
-```bash
-gotestx -I mock ./...
-gotestx -I mock -I testkit ./...
-```
-
-### Ignore file
-
-```
-mock
-outport/testkit
-```
-
-### Pattern behavior
-
-| Pattern           | Matches                      |
-|-------------------|-----------------------------|
-| mock              | segment named "mock"         |
-| outport/testkit   | exact subpath               |
-
-### Behavior
-
-- Applied after package discovery
+- Applied **after package discovery**
+- Matching packages are removed before execution
 - If all packages are excluded:
 
-```
+```bash
 No packages to test after applying ignore rules.
 ```
 
 ---
 
-## 🧪 Examples
+## Output Modes
+
+### Default
 
 ```bash
 gotestx
-gotestx -c ./...
-gotestx -cq ./...
-gotestx -co ./...
-gotestx -V ./...
-gotestx -cVq ./...
+```
+
+```
+Running tests...
+ok   pkg/a
+ok   pkg/b
 ```
 
 ---
 
-## 🖥 Sample Output
-
-```
-Running tests normally across: ./internal/...
-ok  	github.com/entiqon/gotestx/internal	0.359s
-```
-
-Quiet:
-
-```
-✅ Tests finished successfully
-```
-
-Failure:
-
-```
-❌ Tests failed (use without -q to see details)
-```
-
----
-
-## 🛠 Development
+### Coverage
 
 ```bash
-git clone https://github.com/entiqon/gotestx.git
-cd gotestx
-go build -o gotestx .
-go test ./internal/... -v
+gotestx -c
+```
+
+```
+Running tests with coverage...
+ok   pkg/a
+ok   pkg/b
+Coverage: coverage.out
 ```
 
 ---
 
-## 📄 License
+### Quiet Mode
 
-MIT License — Entiqon Labs
+```bash
+gotestx -q
+```
+
+```
+Tests finished successfully
+```
+
+---
+
+### Clean View
+
+```bash
+gotestx -V
+```
+
+Removes lines like:
+
+```
+? pkg [no test files]
+```
+
+---
+
+## Examples
+
+```bash
+gotestx
+gotestx -c
+gotestx -cq
+gotestx -I mock ./...
+gotestx -I mock -I testkit ./...
+```
+
+---
+
+## Notes
+
+- `--open-coverage` is supported only on macOS
+- Flags can be combined (e.g. `-cq`, `-co`)
