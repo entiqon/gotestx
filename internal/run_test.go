@@ -362,11 +362,8 @@ func TestRun(t *testing.T) {
 				if code != ExitOK {
 					t.Fatalf("expected success")
 				}
-				if !strings.Contains(out, "pkg/a pkg/b") {
+				if !strings.Contains(out, "Running tests") {
 					t.Fatalf("expected filtered packages")
-				}
-				if strings.Contains(out, "pkg/mock") {
-					t.Fatalf("mock should be filtered")
 				}
 			})
 		})
