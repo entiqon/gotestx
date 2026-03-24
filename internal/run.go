@@ -105,13 +105,11 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		packages = filtered
 	}
 
-	pkgList := strings.Join(packages, " ")
-
 	var cmd Command
 
 	if opts.WithCoverage {
 		if !opts.Quiet {
-			_, _ = fmt.Fprintf(stdout, "Running tests with coverage across: %s\n", pkgList)
+			_, _ = fmt.Fprintln(stdout, "Running tests with coverage...")
 		}
 
 		args := buildCoverageArgs(packages)
@@ -119,7 +117,7 @@ func Run(args []string, stdout, stderr io.Writer) int {
 
 	} else {
 		if !opts.Quiet {
-			_, _ = fmt.Fprintf(stdout, "Running tests normally across: %s\n", pkgList)
+			_, _ = fmt.Fprintln(stdout, "Running tests...")
 		}
 
 		args := append([]string{"test"}, packages...)
@@ -153,7 +151,7 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	}
 
 	if opts.WithCoverage && !opts.Quiet {
-		_, _ = fmt.Fprintln(stdout, "Coverage report saved as coverage.out")
+		_, _ = fmt.Fprintln(stdout, "Coverage: coverage.out (use -o to open)")
 		_, _ = fmt.Fprintln(stdout, "Run 'go tool cover -html=coverage.out' to view it")
 	}
 
