@@ -26,6 +26,15 @@ var (
 	// messages or diagnostics.
 	ToolName = "GoTestX"
 
+	// CLIName defines the executable name used in help and usage output.
+	//
+	// This value represents the command users invoke in the terminal
+	// (e.g. "gotestx") and must match the installed binary name.
+	//
+	// It is intentionally separated from ToolName, which represents
+	// the human-readable product name ("GoTestX").
+	CLIName = "gotestx"
+
 	// Author identifies the project maintainers or organization.
 	Author = "Entiqon Labs Team"
 

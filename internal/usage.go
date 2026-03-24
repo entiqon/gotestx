@@ -34,11 +34,11 @@ Examples:
 		Version,
 		Description,
 		Author,
-		ToolName,
-		ToolName,
-		ToolName,
-		ToolName,
-		ToolName,
-		ToolName,
+		CLIName,
+		CLIName,
+		CLIName,
+		CLIName,
+		CLIName,
+		CLIName,
 	)
 }
