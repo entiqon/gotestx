@@ -9,7 +9,9 @@
 [![Codecov](https://codecov.io/gh/entiqon/gotestx/branch/main/graph/badge.svg)](https://codecov.io/gh/entiqon/gotestx)
 [![Go Report Card](https://goreportcard.com/badge/github.com/entiqon/gotestx)](https://goreportcard.com/report/github.com/entiqon/gotestx)
 [![Go Reference](https://pkg.go.dev/badge/github.com/entiqon/gotestx.svg)](https://pkg.go.dev/github.com/entiqon/gotestx)
-[![License](https://img.shields.io/github/license/entiqon/gotestx)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Security Verified](https://img.shields.io/badge/Security-Verified-success?logoColor=white)](https://github.com/Entiqon/gotestx/security/advisories)
+[![GPG Signed](https://img.shields.io/badge/GPG-Signed-blue?logo=gnupg&logoColor=white)](https://github.com/Entiqon/gotestx/commits/main)
 
 **Official repository (canonical source):** https://github.com/entiqon/gotestx
 
