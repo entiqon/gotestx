@@ -3,7 +3,28 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **docs**: Add security and integrity badges
+
+- **cli**: Streamline output by removing package listing and verbose coverage messages
+
+- **docs**: Restructure README into public API-oriented documentation
+
+
+### Fixed
+
+- **test**: Align run output assertions with streamlined CLI output
+
+- **cli**: Use executable name in help output instead of branding
+
+
+### Added
+
 - **exclusion**: Add ignore option and filtering logic
+
+
+### Documentation
+
+- **release**: Prepare v1.2.0
 
 
 ### Changed
