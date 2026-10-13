@@ -6,41 +6,71 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  COVERAGE_MIN: 80
+  SOURCE_PATTERN: '\.go$|^go\.(mod|sum)$'
+  COVERAGE_EXCLUDE: '(/testdata/|/mocks?/|/generated/|\.pb\.go:|_gen\.go:|\.gen\.go:|/mock_[^/]*\.go:)'
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect source changes
+        id: changes
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            files=$(git diff --name-only "origin/$BASE_REF"...HEAD) || files="force.go"
+          else
+            files=$(git diff --name-only "$BEFORE" "$SHA" 2>/dev/null) || files="force.go"
+          fi
+          if echo "$files" | grep -qE "$SOURCE_PATTERN"; then
+            echo "source=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "source=false" >> "$GITHUB_OUTPUT"
+            echo "No source changes; skipping coverage gate."
+          fi
 
       - name: Set up Go
+        if: steps.changes.outputs.source == 'true'
         uses: actions/setup-go@v6
         with:
           go-version: stable
 
       - name: Install GoTestX
+        if: steps.changes.outputs.source == 'true'
         run: go install github.com/entiqon/gotestx@v1.0.0
 
-      - name: Run tests with coverage (excluding cmd/)
-        run: |
-          gotestx -c ./internal/...
+      - name: Run tests with coverage
+        if: steps.changes.outputs.source == 'true'
+        run: gotestx -c ./internal/...
 
-      - name: Show coverage %
-        run: |
-          echo "Total coverage:"
-          go tool cover -func=coverage.out | grep total
+      - name: Filter coverage to source files
+        if: steps.changes.outputs.source == 'true'
+        run: grep -vE "$COVERAGE_EXCLUDE" coverage.out > coverage.src.out
 
-      - name: Enforce minimum 80% coverage
+      - name: Enforce minimum coverage
+        if: steps.changes.outputs.source == 'true'
         run: |
-          pct=$(go tool cover -func=coverage.out | grep total | awk '{print substr($3, 1, length($3)-1)}')
-          echo "Coverage: $pct%"
-          awk -v p="$pct" 'BEGIN {exit !(p >= 80)}'
+          go tool cover -func=coverage.src.out | grep total
+          pct=$(go tool cover -func=coverage.src.out | grep total | awk '{print substr($3, 1, length($3)-1)}')
+          echo "Coverage: $pct% (minimum: $COVERAGE_MIN%)"
+          awk -v p="$pct" -v m="$COVERAGE_MIN" 'BEGIN {exit !(p >= m)}'
 
       - name: Upload coverage report
-        if: success()
+        if: success() && steps.changes.outputs.source == 'true'
         uses: codecov/codecov-action@v5
         with:
-          files: ./coverage.out
+          files: ./coverage.src.out
           flags: gotestx
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
